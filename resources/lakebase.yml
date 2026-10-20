@@ -1,0 +1,6 @@
+resources:
+  postgres_projects:
+    halyard_lakebase:
+      project_id: ${var.lakebase_project}
+      display_name: Halyard traffic shaping (FE Bar)
+      pg_version: 17

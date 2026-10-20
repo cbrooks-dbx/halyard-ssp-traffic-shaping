@@ -1,0 +1,64 @@
+resources:
+  jobs:
+    traffic_shaping_e2e:
+      name: halyard-traffic-shaping-e2e
+      description: End-to-end run - synthetic bid logs -> Lakeflow -> UC governance -> ML -> GenAI -> Lakebase -> Genie
+      max_concurrent_runs: 1
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+        - name: schema
+          default: ${var.schema}
+        - name: warehouse_id
+          default: ${var.warehouse_id}
+        - name: llm_endpoint
+          default: ${var.batch_llm_endpoint}
+        - name: lakebase_project
+          default: ${var.lakebase_project}
+        - name: app_name
+          default: ${var.app_name}
+        - name: days
+          default: "14"
+        - name: auctions_per_day
+          default: "40000"
+      tasks:
+        - task_key: setup
+          notebook_task:
+            notebook_path: ../src/notebooks/00_setup.py
+        - task_key: generate_bid_logs
+          depends_on: [{task_key: setup}]
+          notebook_task:
+            notebook_path: ../src/notebooks/01_generate_bid_logs.py
+        - task_key: lakeflow_ingest
+          depends_on: [{task_key: generate_bid_logs}]
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.bid_log_pipeline.id}
+            full_refresh: false
+        - task_key: governance
+          depends_on: [{task_key: lakeflow_ingest}]
+          notebook_task:
+            notebook_path: ../src/notebooks/02_governance.py
+        - task_key: train_bid_propensity
+          depends_on: [{task_key: lakeflow_ingest}]
+          notebook_task:
+            notebook_path: ../src/notebooks/03_train_bid_propensity.py
+        - task_key: score_throttle_rules
+          depends_on: [{task_key: train_bid_propensity}]
+          notebook_task:
+            notebook_path: ../src/notebooks/04_score_throttle_rules.py
+        - task_key: genai_partner_briefs
+          depends_on: [{task_key: score_throttle_rules}]
+          notebook_task:
+            notebook_path: ../src/notebooks/05_genai_partner_briefs.py
+        - task_key: lakebase_serving
+          depends_on: [{task_key: score_throttle_rules}, {task_key: governance}]
+          notebook_task:
+            notebook_path: ../src/notebooks/06_lakebase_serving.py
+        - task_key: genie_space
+          depends_on: [{task_key: genai_partner_briefs}, {task_key: governance}]
+          notebook_task:
+            notebook_path: ../src/notebooks/07_genie_space.py
+        - task_key: validate_e2e
+          depends_on: [{task_key: lakebase_serving}, {task_key: genie_space}]
+          notebook_task:
+            notebook_path: ../src/notebooks/08_validate_e2e.py

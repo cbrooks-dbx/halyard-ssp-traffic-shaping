@@ -1,0 +1,15 @@
+resources:
+  pipelines:
+    bid_log_pipeline:
+      name: halyard-bid-log-pipeline
+      catalog: ${var.catalog}
+      schema: ${var.schema}
+      serverless: true
+      channel: CURRENT
+      photon: true
+      continuous: false
+      configuration:
+        source_path: /Volumes/${var.catalog}/${var.schema}/raw_landing
+      libraries:
+        - file:
+            path: ../src/pipeline/bid_log_pipeline.sql

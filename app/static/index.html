@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Halyard Exchange | Traffic Shaping</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root { --navy:#1B3139; --lava:#FF3621; --oat:#F9F7F4; --line:#E3DED6; --muted:#5A6B70; --green:#00A972; --amber:#E89B00; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family: "DM Sans", -apple-system, Segoe UI, sans-serif; background:var(--oat); color:var(--navy); }
+  header { background:var(--navy); color:#fff; padding:18px 32px; display:flex; align-items:center; gap:24px; }
+  header h1 { font-size:20px; margin:0; font-weight:600; }
+  header .sub { color:#B8C4C7; font-size:13px; }
+  nav { display:flex; gap:4px; margin-left:auto; }
+  nav button { background:transparent; color:#D7DEE0; border:0; padding:8px 14px; border-radius:6px; cursor:pointer; font-size:14px; }
+  nav button.active, nav button:hover { background:#2C4A54; color:#fff; }
+  main { padding:24px 32px; max-width:1320px; margin:0 auto; }
+  .tab { display:none; } .tab.active { display:block; }
+  .kpis { display:grid; grid-template-columns:repeat(4, 1fr); gap:16px; margin-bottom:20px; }
+  .card { background:#fff; border:1px solid var(--line); border-radius:10px; padding:18px; }
+  .kpi .label { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
+  .kpi .value { font-size:30px; font-weight:700; margin-top:6px; }
+  .kpi .note { color:var(--muted); font-size:12px; margin-top:4px; }
+  .kpi.hero .value { color:var(--lava); }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
+  h2 { font-size:16px; margin:0 0 10px; } h3 { font-size:14px; margin:0 0 6px; }
+  p.lead { color:var(--muted); margin:0 0 16px; font-size:14px; max-width:900px; }
+  .exec { white-space:pre-wrap; line-height:1.5; font-size:14px; }
+  .tag { display:inline-block; font-size:11px; padding:2px 8px; border-radius:10px; background:#EEF2F3; color:var(--muted); margin-left:6px; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th { text-align:left; color:var(--muted); font-weight:500; border-bottom:1px solid var(--line); padding:8px 6px; position:sticky; top:0; background:#fff; }
+  td { border-bottom:1px solid #F0ECE6; padding:7px 6px; vertical-align:top; }
+  tr.clickable:hover { background:#FBFAF8; cursor:pointer; }
+  .pill { font-size:11px; font-weight:600; padding:2px 8px; border-radius:10px; }
+  .THROTTLE { background:#FFE4DF; color:#B42318; } .REDUCE { background:#FFF2D6; color:#8A5A00; } .ALLOW { background:#DDF5EC; color:#0B6B4A; }
+  .brief { white-space:pre-wrap; font-size:13px; color:#33474D; background:var(--oat); border-radius:8px; padding:10px; margin-top:6px; }
+  select, input, textarea { font:inherit; padding:7px 9px; border:1px solid var(--line); border-radius:6px; background:#fff; }
+  button.primary { background:var(--lava); color:#fff; border:0; padding:8px 14px; border-radius:6px; cursor:pointer; font-weight:600; }
+  button.ghost { background:#fff; color:var(--navy); border:1px solid var(--line); padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px; }
+  .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:12px; }
+  .scroll { max-height:520px; overflow:auto; }
+  .chips button { margin:0 6px 6px 0; }
+  pre.sql { background:#0F1E23; color:#D7E3E6; padding:10px; border-radius:8px; font-size:12px; overflow:auto; white-space:pre-wrap; }
+  .muted { color:var(--muted); font-size:12px; }
+  .drawer { position:fixed; right:0; top:0; height:100%; width:460px; background:#fff; border-left:1px solid var(--line); box-shadow:-8px 0 24px rgba(0,0,0,.08); padding:22px; overflow:auto; display:none; }
+  .drawer.open { display:block; }
+  .flow { display:flex; gap:8px; align-items:center; flex-wrap:wrap; font-size:12px; color:var(--muted); margin-bottom:18px; }
+  .flow span.step { background:#fff; border:1px solid var(--line); border-radius:14px; padding:4px 10px; color:var(--navy); }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Halyard Exchange &middot; Traffic Shaping</h1>
+    <div class="sub">Stop sending bid requests DSPs will not bid on. Keep the revenue.</div>
+  </div>
+  <nav>
+    <button data-tab="overview" class="active">Overview</button>
+    <button data-tab="partners">Partners</button>
+    <button data-tab="rules">Rules &amp; overrides</button>
+    <button data-tab="genie">Ask Genie</button>
+    <button data-tab="edge">Edge lookup</button>
+  </nav>
+</header>
+<main>
+  <div class="flow">
+    <span class="step">Bid logs</span>&rarr;<span class="step">Lakeflow</span>&rarr;<span class="step">Unity Catalog</span>&rarr;
+    <span class="step">Bid-propensity model</span>&rarr;<span class="step">Throttle rules</span>&rarr;<span class="step">Lakebase</span>&rarr;
+    <span class="step">This app / bidder edge</span>
+  </div>
+
+  <section id="overview" class="tab active">
+    <div class="kpis">
+      <div class="card kpi hero"><div class="label">Annual infra savings</div><div class="value" id="k-save">-</div><div class="note">outbound calls not sent &times; cost per call</div></div>
+      <div class="card kpi"><div class="label">Outbound calls cut</div><div class="value" id="k-cut">-</div><div class="note">share of bid requests no longer sent</div></div>
+      <div class="card kpi"><div class="label">Net revenue retained</div><div class="value" id="k-ret">-</div><div class="note" id="k-ret-note">auction replay; guardrail &ge; 99.0%</div></div>
+      <div class="card kpi"><div class="label">Annual net benefit</div><div class="value" id="k-net">-</div><div class="note" id="k-upside">savings minus expected revenue loss</div></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><h2>Weekly summary for the CRO <span class="tag">GenAI draft</span></h2><div class="exec" id="exec">Loading...</div></div>
+      <div class="card"><h2>Calls cut vs revenue at risk <span class="tag">holdout, ML vs historical rate</span></h2><canvas id="c-curve" height="210"></canvas></div>
+    </div>
+    <div class="card"><h2>Exchange trend <span class="tag">gold_exchange_daily</span></h2><canvas id="c-trend" height="80"></canvas></div>
+  </section>
+
+  <section id="partners" class="tab">
+    <p class="lead">How the rule set lands on each DSP partner, with a GenAI-drafted brief the partner manager reviews before sending. Numbers come from the governed impact table, not from the model's imagination.</p>
+    <div class="card scroll"><table id="t-partners"><thead><tr><th>DSP</th><th>Specialty</th><th>Calls (7d)</th><th>Bid rate</th><th>Calls cut</th><th>Revenue at risk</th><th>Throttled segments</th></tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section id="rules" class="tab">
+    <p class="lead">Rules served from Lakebase. Partner managers can pin a segment to a different action with a reason; the override is written to Lakebase, applied immediately by the edge, and kept as an audit trail.</p>
+    <div class="row">
+      <select id="f-dsp"><option value="">All DSPs</option></select>
+      <select id="f-action"><option value="">All actions</option><option>THROTTLE</option><option>REDUCE</option><option>ALLOW</option></select>
+      <button class="ghost" onclick="loadRules()">Refresh</button>
+      <span class="muted" id="rules-meta"></span>
+    </div>
+    <div class="card scroll"><table id="t-rules"><thead><tr><th>Action</th><th>DSP</th><th>Publisher</th><th>Format / device</th><th>Country / path</th><th>Pred. bid rate</th><th>Calls saved/day</th><th></th></tr></thead><tbody></tbody></table></div>
+    <div class="card" style="margin-top:16px"><h2>Recent overrides <span class="tag">halyard_ops.rule_overrides</span></h2><table id="t-ovr"><thead><tr><th>When</th><th>By</th><th>Rule</th><th>Action</th><th>Reason</th></tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section id="genie" class="tab">
+    <p class="lead">Ask anything about bid rates, wasted calls, throttle rules and their dollar impact. Genie answers over the same governed tables.</p>
+    <div class="chips" id="chips"></div>
+    <div class="row"><input id="g-q" style="flex:1" placeholder="e.g. Which DSPs have the lowest bid rate on the traffic we send them?"><button class="primary" onclick="askGenie()">Ask</button><button class="ghost" onclick="genieConv=null;document.getElementById('g-out').innerHTML=''">New conversation</button></div>
+    <div id="g-out"></div>
+  </section>
+
+  <section id="edge" class="tab">
+    <p class="lead">What the bidder edge does per request: one key lookup in Lakebase returns the send/skip decision, with any active override applied.</p>
+    <div class="card">
+      <div class="row"><select id="e-rule" style="min-width:520px"></select><button class="primary" onclick="edgeLookup()">Look up</button></div>
+      <div id="e-out" class="muted">Pick a segment and look it up.</div>
+    </div>
+  </section>
+</main>
+
+<div class="drawer" id="drawer">
+  <div class="row" style="justify-content:space-between"><h2 id="d-title">Rule</h2><button class="ghost" onclick="closeDrawer()">Close</button></div>
+  <div id="d-facts" class="muted"></div>
+  <h3 style="margin-top:14px">Why this rule <span class="tag">GenAI, on demand</span></h3>
+  <div id="d-explain" class="brief">Click "Explain" to ask the model.</div>
+  <div class="row" style="margin-top:8px"><button class="ghost" onclick="explainRule()">Explain</button></div>
+  <h3 style="margin-top:18px">Override</h3>
+  <div class="row"><select id="o-action"><option>ALLOW</option><option>REDUCE</option><option>THROTTLE</option></select>
+    <select id="o-days"><option value="7">7 days</option><option value="14" selected>14 days</option><option value="30">30 days</option></select></div>
+  <textarea id="o-reason" rows="3" style="width:100%" placeholder="Reason (required), e.g. Tidewater launching CTV campaign for this publisher next week"></textarea>
+  <div class="row" style="margin-top:8px"><button class="primary" onclick="saveOverride()">Save override</button><span id="o-msg" class="muted"></span></div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const pct = (x, d = 1) => (x == null ? "-" : (Number(x) * 100).toFixed(d) + "%");
+const usd = (x) => { x = Number(x); return Math.abs(x) >= 1e6 ? "$" + (x / 1e6).toFixed(1) + "M" : "$" + Math.round(x).toLocaleString(); };
+const num = (x) => Math.round(Number(x)).toLocaleString();
+const api = async (path, opts) => { const r = await fetch(path, opts); if (!r.ok) throw new Error(await r.text()); return r.json(); };
+let rulesCache = [], current = null, genieConv = null;
+
+document.querySelectorAll("nav button").forEach((b) => b.onclick = () => {
+  document.querySelectorAll("nav button").forEach((x) => x.classList.remove("active"));
+  document.querySelectorAll(".tab").forEach((x) => x.classList.remove("active"));
+  b.classList.add("active"); $(b.dataset.tab).classList.add("active");
+});
+
+async function loadOverview() {
+  const d = await api("/api/kpis");
+  const s = d.summary;
+  $("k-save").textContent = usd(s.annual_infra_savings_usd);
+  $("k-cut").textContent = pct(s.outbound_calls_cut_pct);
+  $("k-ret").textContent = pct(1 - s.replay_net_revenue_loss_pct, 2);
+  $("k-ret-note").textContent = `auction replay; worst case ${pct(s.revenue_retained_pct, 2)} (guardrail 99%)`;
+  $("k-net").textContent = usd(s.annual_net_benefit_usd);
+  $("k-upside").textContent = "+ " + usd(s.annual_qps_reallocation_upside_usd) + " upside if freed QPS is re-spent";
+  $("exec").textContent = d.exec_summary ? d.exec_summary.summary : "No summary yet.";
+  const byMethod = (m) => d.curve.filter((r) => r.method === m).map((r) => ({ x: Number(r.revenue_at_risk_pct) * 100, y: Number(r.calls_cut_pct) * 100 }));
+  new Chart($("c-curve"), { type: "line", data: { datasets: [
+      { label: "Bid-propensity model", data: byMethod("ml_model"), borderColor: "#FF3621", pointRadius: 0, tension: .2 },
+      { label: "Historical bid rate", data: byMethod("historical_rate"), borderColor: "#5A6B70", borderDash: [5, 4], pointRadius: 0, tension: .2 }] },
+    options: { parsing: false, scales: { x: { type: "linear", max: 3, title: { display: true, text: "Net revenue at risk (%)" } },
+      y: { title: { display: true, text: "Outbound calls cut (%)" } } },
+      plugins: { annotation: {} } } });
+  new Chart($("c-trend"), { data: { labels: d.trend.map((r) => r.event_date), datasets: [
+      { type: "bar", label: "Outbound calls", data: d.trend.map((r) => Number(r.outbound_calls)), backgroundColor: "#C9D3D6", yAxisID: "y" },
+      { type: "line", label: "Bid rate", data: d.trend.map((r) => Number(r.bid_rate) * 100), borderColor: "#FF3621", yAxisID: "y1" },
+      { type: "line", label: "Fill rate", data: d.trend.map((r) => Number(r.fill_rate) * 100), borderColor: "#1B3139", yAxisID: "y1" }] },
+    options: { scales: { y: { position: "left" }, y1: { position: "right", grid: { drawOnChartArea: false }, title: { display: true, text: "%" } } } } });
+}
+
+async function loadPartners() {
+  const rows = await api("/api/partners");
+  const tb = $("t-partners").querySelector("tbody"); tb.innerHTML = "";
+  const sel = $("f-dsp");
+  rows.forEach((r) => {
+    const tr = document.createElement("tr"); tr.className = "clickable";
+    tr.innerHTML = `<td><b>${r.dsp_name}</b></td><td>${r.specialty}</td><td>${num(r.calls_7d)}</td><td>${pct(r.observed_bid_rate)}</td>
+      <td><b>${pct(r.calls_cut_pct)}</b></td><td>${pct(r.revenue_at_risk_pct, 2)}</td><td>${r.segments_throttled}</td>`;
+    const br = document.createElement("tr"); br.style.display = "none";
+    br.innerHTML = `<td colspan="7"><div class="brief">${(r.partner_brief || "").replace(/</g, "&lt;")}</div></td>`;
+    tr.onclick = () => br.style.display = br.style.display === "none" ? "" : "none";
+    tb.append(tr, br);
+    sel.insertAdjacentHTML("beforeend", `<option value="${r.dsp_id}">${r.dsp_name}</option>`);
+  });
+}
+
+async function loadRules() {
+  const q = new URLSearchParams({ limit: 200 });
+  if ($("f-dsp").value) q.set("dsp_id", $("f-dsp").value);
+  if ($("f-action").value) q.set("action", $("f-action").value);
+  const t0 = performance.now();
+  rulesCache = await api("/api/rules?" + q);
+  $("rules-meta").textContent = `${rulesCache.length} rules from Lakebase in ${Math.round(performance.now() - t0)} ms (round trip)`;
+  const tb = $("t-rules").querySelector("tbody"); tb.innerHTML = "";
+  rulesCache.forEach((r, i) => {
+    const ovr = r.override_by ? ` <span class="tag" title="${r.override_reason}">override</span>` : "";
+    tb.insertAdjacentHTML("beforeend", `<tr class="clickable" onclick="openDrawer(${i})"><td><span class="pill ${r.effective_action}">${r.effective_action}</span>${ovr}</td>
+      <td>${r.dsp_name}</td><td>${r.publisher_name}</td><td>${r.ad_format} / ${r.device_type}</td><td>${r.geo_country} / ${r.supply_path}</td>
+      <td>${pct(r.predicted_bid_rate, 2)}</td><td>${num(r.est_daily_calls_saved)}</td><td><button class="ghost">Open</button></td></tr>`);
+  });
+  const sel = $("e-rule");
+  if (!sel.options.length) rulesCache.slice(0, 80).forEach((r) => sel.insertAdjacentHTML("beforeend",
+    `<option value="${r.rule_id}">${r.dsp_name} | ${r.publisher_name} | ${r.ad_format}/${r.device_type} | ${r.geo_country} | ${r.supply_path}</option>`));
+  loadOverrides();
+}
+
+async function loadOverrides() {
+  const rows = await api("/api/overrides");
+  const tb = $("t-ovr").querySelector("tbody"); tb.innerHTML = rows.length ? "" : `<tr><td colspan="5" class="muted">No overrides yet.</td></tr>`;
+  rows.forEach((o) => tb.insertAdjacentHTML("beforeend", `<tr><td>${new Date(o.created_at).toLocaleString()}</td><td>${o.created_by}</td>
+    <td class="muted">${o.rule_id}</td><td><span class="pill ${o.action}">${o.action}</span></td><td>${o.reason}</td></tr>`));
+}
+
+function openDrawer(i) {
+  current = rulesCache[i];
+  $("d-title").textContent = `${current.dsp_name} x ${current.publisher_name}`;
+  $("d-facts").innerHTML = `${current.ad_format} on ${current.device_type}, ${current.geo_country}, ${current.supply_path}, user ID ${current.user_id_present ? "present" : "absent"}<br>
+    7d: ${num(current.calls_7d)} calls, ${num(current.bids_7d)} bids (observed ${pct(current.observed_bid_rate, 2)}, predicted ${pct(current.predicted_bid_rate, 2)})<br>
+    Model action <b>${current.model_action}</b>, effective <b>${current.effective_action}</b>`;
+  $("d-explain").textContent = "Click \"Explain\" to ask the model."; $("o-msg").textContent = "";
+  $("drawer").classList.add("open");
+}
+function closeDrawer() { $("drawer").classList.remove("open"); }
+async function explainRule() {
+  $("d-explain").textContent = "Thinking...";
+  try { const r = await api("/api/explain", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ rule_id: current.rule_id }) });
+    $("d-explain").textContent = r.explanation; } catch (e) { $("d-explain").textContent = "Error: " + e.message; }
+}
+async function saveOverride() {
+  const body = { rule_id: current.rule_id, action: $("o-action").value, reason: $("o-reason").value, days: Number($("o-days").value) };
+  try { const r = await api("/api/overrides", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    $("o-msg").textContent = `Saved override #${r.override_id}. The edge applies it on the next lookup.`; loadRules();
+  } catch (e) { $("o-msg").textContent = "Error: " + e.message; }
+}
+
+const SAMPLES = ["Which DSPs have the lowest bid rate on the traffic we send them?", "What is the annual infra savings and revenue at risk from the current throttle rules?",
+  "Which publishers have the most throttled segments?", "Show daily bid rate and fill rate for the last 14 days", "Which countries drive the most wasted calls?"];
+SAMPLES.forEach((s) => { const b = document.createElement("button"); b.className = "ghost"; b.textContent = s; b.onclick = () => { $("g-q").value = s; askGenie(); }; $("chips").append(b); });
+async function askGenie() {
+  const q = $("g-q").value.trim(); if (!q) return;
+  const box = document.createElement("div"); box.className = "card"; box.style.marginBottom = "12px";
+  box.innerHTML = `<h3>${q.replace(/</g, "&lt;")}</h3><div class="muted">Genie is working...</div>`; $("g-out").prepend(box);
+  try {
+    const r = await api("/api/genie", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question: q, conversation_id: genieConv }) });
+    genieConv = r.conversation_id;
+    let html = `<h3>${q.replace(/</g, "&lt;")}</h3>`;
+    if (r.text) html += `<p>${r.text.replace(/</g, "&lt;")}</p>`;
+    if (r.description) html += `<p class="muted">${r.description}</p>`;
+    if (r.rows && r.rows.length) html += `<div class="scroll" style="max-height:300px"><table><thead><tr>${r.columns.map((c) => `<th>${c}</th>`).join("")}</tr></thead><tbody>` +
+      r.rows.map((row) => `<tr>${row.map((v) => `<td>${v ?? ""}</td>`).join("")}</tr>`).join("") + `</tbody></table></div>`;
+    if (r.sql) html += `<details><summary class="muted">SQL Genie ran</summary><pre class="sql">${r.sql.replace(/</g, "&lt;")}</pre></details>`;
+    box.innerHTML = html;
+  } catch (e) { box.innerHTML += `<p>Error: ${e.message}</p>`; }
+}
+
+async function edgeLookup() {
+  const r = await api("/api/edge/decision?rule_id=" + encodeURIComponent($("e-rule").value));
+  $("e-out").innerHTML = `<p style="font-size:18px"><span class="pill ${r.action}">${r.action}</span> send rate <b>${(r.send_rate * 100).toFixed(0)}%</b></p>
+    <p class="muted">Lakebase lookup inside the app: <b>${r.lookup_ms} ms</b> (source: ${r.source}). rule_id ${r.rule_id}</p>`;
+}
+
+loadOverview().catch((e) => $("exec").textContent = "Error: " + e.message);
+loadPartners().then(loadRules).catch(console.error);
+</script>
+</body>
+</html>
