@@ -30,6 +30,18 @@ def render_result(res: dict | None) -> str:
     if not res:
         return ""
     kind, data = res.get("type"), res.get("data")
+    if isinstance(data, list) and data and all(isinstance(x, dict) and "type" in x for x in data):
+        parts = []  # multi-part cell output (stdout, stderr, display); keep the readable text, drop widget/progress noise
+        for x in data:
+            if x.get("type") in ("ansi", "text") and isinstance(x.get("data"), str):
+                parts.append(x["data"])
+            elif x.get("type") == "mimeBundle" and isinstance(x.get("data"), dict):
+                t = x["data"].get("text/plain", "")
+                if t and not t.startswith(("Uploading artifacts", "Downloading artifacts", "DataFrame[")):
+                    parts.append(t)
+            elif x.get("type") == "table":
+                parts.append(render_result(x))
+        return "\n".join(p.rstrip("\n") for p in parts)
     if kind in ("text", "ansi") or isinstance(data, str):
         return str(data or "")
     if kind == "table" and isinstance(data, list):

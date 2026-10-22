@@ -75,7 +75,7 @@ Everything deploys as one **Declarative Automation Bundle** (`databricks.yml`, `
 
 The evaluator reads text, so the run outputs are committed as text:
 
-- [`evidence/job_run_<id>/`](evidence/): one markdown file per task with every code cell **and the output it produced** in that run (exported from the Jobs API), plus the pipeline event log, `run.json` and a task summary.
+- [`evidence/job_run_1097322092005970/`](evidence/job_run_1097322092005970/README.md) (index: [`evidence/README.md`](evidence/README.md)): one markdown file per task with every code cell **and the output it produced** in that run (exported from the Jobs API), plus the pipeline event log, `run.json` and a task summary.
 - [`evidence/e2e_validation.md`](evidence/e2e_validation.md): the 18 checks and their results.
 - [`evidence/app_api_smoke_test.md`](evidence/app_api_smoke_test.md): live calls against the deployed app (Lakebase reads, override write, edge lookup, LLM explanation, Genie answer with its SQL).
 - [`evidence/key_results.md`](evidence/key_results.md): model metrics, policy curve, per-DSP impact, a sample GenAI brief, the CRO summary.
@@ -95,7 +95,7 @@ The short version is below. The full reasoning, with the alternatives considered
 
 ```bash
 databricks bundle deploy -p <profile>
-databricks bundle run traffic_shaping_e2e -p <profile>      # ~25 min end to end, serverless
+databricks bundle run traffic_shaping_e2e -p <profile>      # ~15-25 min end to end, serverless
 databricks bundle run halyard_app -p <profile>
 python scripts/export_run_evidence.py <job_run_id>          # regenerate evidence/
 ```

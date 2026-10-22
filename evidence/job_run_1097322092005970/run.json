@@ -1,0 +1,378 @@
+{
+  "run_id": 1097322092005970,
+  "run_name": "halyard-traffic-shaping-e2e",
+  "state": {
+    "life_cycle_state": "TERMINATED",
+    "result_state": "SUCCESS",
+    "state_message": "",
+    "user_cancelled_or_timedout": false
+  },
+  "start_time": 1792519892504,
+  "end_time": 1792520541198,
+  "tasks": [
+    {
+      "run_id": 186679299249132,
+      "task_key": "genai_partner_briefs",
+      "depends_on": [
+        {
+          "task_key": "score_throttle_rules"
+        }
+      ],
+      "run_if": "ALL_SUCCESS",
+      "notebook_task": {
+        "notebook_path": "/Workspace/Users/chandler.brooks@databricks.com/.bundle/ssp-traffic-shaping/dev/files/src/notebooks/05_genai_partner_briefs",
+        "source": "WORKSPACE"
+      },
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "run_page_url": "https://fevm-cmegdemos.cloud.databricks.com/?o=7474656585748611#job/932136952703687/run/186679299249132",
+      "start_time": 1792520371856,
+      "setup_duration": 2000,
+      "execution_duration": 32000,
+      "cleanup_duration": 0,
+      "end_time": 1792520406347,
+      "attempt_number": 0,
+      "status": {
+        "state": "TERMINATED",
+        "termination_details": {
+          "code": "SUCCESS",
+          "type": "SUCCESS",
+          "message": ""
+        }
+      },
+      "effective_performance_target": "PERFORMANCE_OPTIMIZED"
+    },
+    {
+      "run_id": 816988191675351,
+      "task_key": "generate_bid_logs",
+      "depends_on": [
+        {
+          "task_key": "setup"
+        }
+      ],
+      "run_if": "ALL_SUCCESS",
+      "notebook_task": {
+        "notebook_path": "/Workspace/Users/chandler.brooks@databricks.com/.bundle/ssp-traffic-shaping/dev/files/src/notebooks/01_generate_bid_logs",
+        "source": "WORKSPACE"
+      },
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "run_page_url": "https://fevm-cmegdemos.cloud.databricks.com/?o=7474656585748611#job/932136952703687/run/816988191675351",
+      "start_time": 1792519933654,
+      "setup_duration": 2000,
+      "execution_duration": 5000,
+      "cleanup_duration": 0,
+      "end_time": 1792519941098,
+      "attempt_number": 0,
+      "status": {
+        "state": "TERMINATED",
+        "termination_details": {
+          "code": "SUCCESS",
+          "type": "SUCCESS",
+          "message": ""
+        }
+      },
+      "effective_performance_target": "PERFORMANCE_OPTIMIZED"
+    },
+    {
+      "run_id": 915322192317950,
+      "task_key": "genie_space",
+      "depends_on": [
+        {
+          "task_key": "genai_partner_briefs"
+        },
+        {
+          "task_key": "governance"
+        }
+      ],
+      "run_if": "ALL_SUCCESS",
+      "notebook_task": {
+        "notebook_path": "/Workspace/Users/chandler.brooks@databricks.com/.bundle/ssp-traffic-shaping/dev/files/src/notebooks/07_genie_space",
+        "source": "WORKSPACE"
+      },
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "run_page_url": "https://fevm-cmegdemos.cloud.databricks.com/?o=7474656585748611#job/932136952703687/run/915322192317950",
+      "start_time": 1792520406671,
+      "setup_duration": 2000,
+      "execution_duration": 50000,
+      "cleanup_duration": 0,
+      "end_time": 1792520459332,
+      "attempt_number": 0,
+      "status": {
+        "state": "TERMINATED",
+        "termination_details": {
+          "code": "SUCCESS",
+          "type": "SUCCESS",
+          "message": ""
+        }
+      },
+      "effective_performance_target": "PERFORMANCE_OPTIMIZED"
+    },
+    {
+      "run_id": 126802945392040,
+      "task_key": "governance",
+      "depends_on": [
+        {
+          "task_key": "lakeflow_ingest"
+        }
+      ],
+      "run_if": "ALL_SUCCESS",
+      "notebook_task": {
+        "notebook_path": "/Workspace/Users/chandler.brooks@databricks.com/.bundle/ssp-traffic-shaping/dev/files/src/notebooks/02_governance",
+        "source": "WORKSPACE"
+      },
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "run_page_url": "https://fevm-cmegdemos.cloud.databricks.com/?o=7474656585748611#job/932136952703687/run/126802945392040",
+      "start_time": 1792520044488,
+      "setup_duration": 4000,
+      "execution_duration": 57000,
+      "cleanup_duration": 0,
+      "end_time": 1792520105838,
+      "attempt_number": 0,
+      "status": {
+        "state": "TERMINATED",
+        "termination_details": {
+          "code": "SUCCESS",
+          "type": "SUCCESS",
+          "message": ""
+        }
+      },
+      "effective_performance_target": "PERFORMANCE_OPTIMIZED"
+    },
+    {
+      "run_id": 584769068839295,
+      "task_key": "lakebase_serving",
+      "depends_on": [
+        {
+          "task_key": "score_throttle_rules"
+        },
+        {
+          "task_key": "governance"
+        }
+      ],
+      "run_if": "ALL_SUCCESS",
+      "notebook_task": {
+        "notebook_path": "/Workspace/Users/chandler.brooks@databricks.com/.bundle/ssp-traffic-shaping/dev/files/src/notebooks/06_lakebase_serving",
+        "source": "WORKSPACE"
+      },
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "run_page_url": "https://fevm-cmegdemos.cloud.databricks.com/?o=7474656585748611#job/932136952703687/run/584769068839295",
+      "start_time": 1792520371946,
+      "setup_duration": 2000,
+      "execution_duration": 57000,
+      "cleanup_duration": 0,
+      "end_time": 1792520431456,
+      "attempt_number": 0,
+      "status": {
+        "state": "TERMINATED",
+        "termination_details": {
+          "code": "SUCCESS",
+          "type": "SUCCESS",
+          "message": ""
+        }
+      },
+      "effective_performance_target": "PERFORMANCE_OPTIMIZED"
+    },
+    {
+      "run_id": 994673273324462,
+      "task_key": "lakeflow_ingest",
+      "depends_on": [
+        {
+          "task_key": "generate_bid_logs"
+        }
+      ],
+      "run_if": "ALL_SUCCESS",
+      "pipeline_task": {
+        "pipeline_id": "d88fa974-f1d1-4680-81fd-b54e1e2b6239",
+        "full_refresh": false
+      },
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "run_page_url": "https://fevm-cmegdemos.cloud.databricks.com/?o=7474656585748611#job/932136952703687/run/994673273324462",
+      "start_time": 1792519941458,
+      "setup_duration": 0,
+      "execution_duration": 102000,
+      "cleanup_duration": 0,
+      "end_time": 1792520044250,
+      "attempt_number": 0,
+      "status": {
+        "state": "TERMINATED",
+        "termination_details": {
+          "code": "SUCCESS",
+          "type": "SUCCESS",
+          "message": ""
+        }
+      },
+      "effective_performance_target": "PERFORMANCE_OPTIMIZED"
+    },
+    {
+      "run_id": 678646365564272,
+      "task_key": "score_throttle_rules",
+      "depends_on": [
+        {
+          "task_key": "train_bid_propensity"
+        }
+      ],
+      "run_if": "ALL_SUCCESS",
+      "notebook_task": {
+        "notebook_path": "/Workspace/Users/chandler.brooks@databricks.com/.bundle/ssp-traffic-shaping/dev/files/src/notebooks/04_score_throttle_rules",
+        "source": "WORKSPACE"
+      },
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "run_page_url": "https://fevm-cmegdemos.cloud.databricks.com/?o=7474656585748611#job/932136952703687/run/678646365564272",
+      "start_time": 1792520210898,
+      "setup_duration": 2000,
+      "execution_duration": 158000,
+      "cleanup_duration": 0,
+      "end_time": 1792520371455,
+      "attempt_number": 0,
+      "status": {
+        "state": "TERMINATED",
+        "termination_details": {
+          "code": "SUCCESS",
+          "type": "SUCCESS",
+          "message": ""
+        }
+      },
+      "effective_performance_target": "PERFORMANCE_OPTIMIZED"
+    },
+    {
+      "run_id": 936885203611967,
+      "task_key": "setup",
+      "run_if": "ALL_SUCCESS",
+      "notebook_task": {
+        "notebook_path": "/Workspace/Users/chandler.brooks@databricks.com/.bundle/ssp-traffic-shaping/dev/files/src/notebooks/00_setup",
+        "source": "WORKSPACE"
+      },
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "run_page_url": "https://fevm-cmegdemos.cloud.databricks.com/?o=7474656585748611#job/932136952703687/run/936885203611967",
+      "start_time": 1792519892555,
+      "setup_duration": 5000,
+      "execution_duration": 35000,
+      "cleanup_duration": 0,
+      "end_time": 1792519933240,
+      "attempt_number": 0,
+      "status": {
+        "state": "TERMINATED",
+        "termination_details": {
+          "code": "SUCCESS",
+          "type": "SUCCESS",
+          "message": ""
+        }
+      },
+      "effective_performance_target": "PERFORMANCE_OPTIMIZED"
+    },
+    {
+      "run_id": 600156339404322,
+      "task_key": "train_bid_propensity",
+      "depends_on": [
+        {
+          "task_key": "lakeflow_ingest"
+        }
+      ],
+      "run_if": "ALL_SUCCESS",
+      "notebook_task": {
+        "notebook_path": "/Workspace/Users/chandler.brooks@databricks.com/.bundle/ssp-traffic-shaping/dev/files/src/notebooks/03_train_bid_propensity",
+        "source": "WORKSPACE"
+      },
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "run_page_url": "https://fevm-cmegdemos.cloud.databricks.com/?o=7474656585748611#job/932136952703687/run/600156339404322",
+      "start_time": 1792520044582,
+      "setup_duration": 4000,
+      "execution_duration": 161000,
+      "cleanup_duration": 0,
+      "end_time": 1792520210525,
+      "attempt_number": 0,
+      "status": {
+        "state": "TERMINATED",
+        "termination_details": {
+          "code": "SUCCESS",
+          "type": "SUCCESS",
+          "message": ""
+        }
+      },
+      "effective_performance_target": "PERFORMANCE_OPTIMIZED"
+    },
+    {
+      "run_id": 979563940548190,
+      "task_key": "validate_e2e",
+      "depends_on": [
+        {
+          "task_key": "lakebase_serving"
+        },
+        {
+          "task_key": "genie_space"
+        }
+      ],
+      "run_if": "ALL_SUCCESS",
+      "notebook_task": {
+        "notebook_path": "/Workspace/Users/chandler.brooks@databricks.com/.bundle/ssp-traffic-shaping/dev/files/src/notebooks/08_validate_e2e",
+        "source": "WORKSPACE"
+      },
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "run_page_url": "https://fevm-cmegdemos.cloud.databricks.com/?o=7474656585748611#job/932136952703687/run/979563940548190",
+      "start_time": 1792520459750,
+      "setup_duration": 2000,
+      "execution_duration": 78000,
+      "cleanup_duration": 0,
+      "end_time": 1792520540759,
+      "attempt_number": 0,
+      "status": {
+        "state": "TERMINATED",
+        "termination_details": {
+          "code": "SUCCESS",
+          "type": "SUCCESS",
+          "message": ""
+        }
+      },
+      "effective_performance_target": "PERFORMANCE_OPTIMIZED"
+    }
+  ]
+}
